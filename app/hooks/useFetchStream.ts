@@ -20,15 +20,26 @@ export const useFetchStream = (url: string): UseFetchStream => {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  const buildQueryParams = (params: RequestData) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((val) => searchParams.append(key, String(val)));
+      } else {
+        searchParams.append(key, String(value));
+      }
+    });
+    return searchParams.toString();
+  };
+
   const processRequest = (item: { requestData: RequestData; id: string }) => {
     setLoading(true);
     setDone(false);
     setError(null);
     setResponseChunks([]);
 
-    const queryParams = new URLSearchParams(item.requestData).toString();
+    const queryParams = buildQueryParams(item.requestData);
     const eventSource = new EventSource(`${url}?${queryParams}`);
-
     fetchStreamQueue["running"].eventSource = eventSource;
 
     eventSource.onmessage = (event: MessageEvent) => {
@@ -53,17 +64,14 @@ export const useFetchStream = (url: string): UseFetchStream => {
     } else {
       fetchStreamQueue.cancelAll();
     }
-
     setLoading(false);
 
-    // Send stop request to backend
     try {
       const response = await fetch(
         "http://0.0.0.0:8002/api/v1/rag/query/stop",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          // body: JSON.stringify({ id }),
         }
       );
       console.info("Cancelled stream:", response);

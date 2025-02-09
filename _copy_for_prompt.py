@@ -92,7 +92,7 @@ DEFAULT_SYSTEM_MESSAGE = """
 """.strip()
 
 DEFAULT_QUERY_MESSAGE = """
-Make sure passed params are filtered with value.
+Update so that params that are arrays are correctly passed through GET.
 """.strip()
 
 DEFAULT_INSTRUCTIONS_MESSAGE = """
