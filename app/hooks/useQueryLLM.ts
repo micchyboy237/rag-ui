@@ -36,7 +36,8 @@ type QueryOptions = typeof DEFAULT_OPTIONS;
 type UseQueryLLM = {
   run: (query: string, options?: Partial<QueryOptions>) => void;
   cancel: () => void;
-  data: string[];
+  data: string;
+  rawData: string[];
   loading: boolean;
   done: boolean;
   error: Error | null;
