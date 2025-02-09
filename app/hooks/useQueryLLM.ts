@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { toSnakeCase } from "~/utils/transformers";
+import { useFetchStream } from "./useFetchStream";
+
+const DEFAULT_URL = "http://0.0.0.0:8002/api/v1/rag/query";
+// const DEFAULT_URL = "http://0.0.0.0:8002/api/v1/rag/sample-stream";
 
 const DEFAULT_OPTIONS = {
   ragDir:
@@ -15,7 +19,7 @@ const DEFAULT_OPTIONS = {
   chunkSize: 1024,
   chunkOverlap: 40,
   subChunkSizes: [512, 256, 128],
-  withHierarchy: true,
+  withHierarchy: false,
   topK: null,
   model: "llama3.2",
   embedModel: "nomic-embed-text",
@@ -29,60 +33,29 @@ const DEFAULT_OPTIONS = {
 
 type QueryOptions = typeof DEFAULT_OPTIONS;
 
-type QueryHook = {
+type UseQueryLLM = {
   run: (query: string, options?: Partial<QueryOptions>) => void;
   cancel: () => void;
   data: string[];
   loading: boolean;
+  done: boolean;
   error: Error | null;
 };
 
-type Options = Partial<QueryOptions>;
+export const useQueryLLM = (url: string = DEFAULT_URL): UseQueryLLM => {
+  const { run: runStream, ...streamState } = useFetchStream(url);
+  console.log("streamState:", streamState);
 
-export const useQueryLLM = (): QueryHook => {
-  const [data, setData] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [controller, setController] = useState<AbortController | null>(null);
-
-  const fetchQuery = async (query: string, options?: Options) => {
-    setLoading(true);
-    setError(null);
-    const abortController = new AbortController();
-    setController(abortController);
-    try {
-      const finalOptions = { ...DEFAULT_OPTIONS, ...options };
-      const snakeCasedOptions = toSnakeCase(finalOptions);
-      const response = await fetch("http://0.0.0.0:8002/api/v1/rag/query", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+  const run = (query: string, options?: Partial<QueryOptions>) => {
+    if (query) {
+      runStream(
+        toSnakeCase({
           query,
-          ...snakeCasedOptions,
-        }),
-        signal: abortController.signal,
-      });
-      if (!response.ok) throw new Error(`Failed: ${response.statusText}`);
-      const result = await response.text();
-      setData(result.split("\n").filter(Boolean));
-    } catch (err: any) {
-      if (err.name !== "AbortError") setError(err);
-    } finally {
-      setLoading(false);
+          ...options,
+        })
+      );
     }
   };
 
-  const run = (query: string, options?: Options) => {
-    if (query) fetchQuery(query, options);
-  };
-
-  const cancel = () => {
-    if (controller) {
-      controller.abort();
-      setLoading(false);
-      setError(new Error("Request cancelled"));
-    }
-  };
-
-  return { run, cancel, data, loading, error };
+  return { run, ...streamState };
 };

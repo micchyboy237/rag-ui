@@ -56,19 +56,17 @@ export const Container: React.FC = () => {
   return (
     <div className="p-4">
       <SearchForm onSearch={handleSearchNodes} />
-      <button onClick={handleStoreQuery} className="add-button mt-2">
-        Store Query
-      </button>
       {queryNodes.data.length > 0 && (
-        <button onClick={handleSearchLLM} className="search-button mt-2">
-          Search LLM
-        </button>
+        <>
+          <button onClick={handleStoreQuery} className="add-button mt-2">
+            Store Query
+          </button>
+          <button onClick={handleSearchLLM} className="search-button mt-2">
+            Search LLM
+          </button>
+        </>
       )}
-      <Results
-        data={queryNodes.data}
-        loading={queryNodes.loading}
-        error={queryNodes.error}
-      />
+
       <div className="query-cache mt-4">
         <h3>Stored Queries</h3>
         <ul>
@@ -98,6 +96,15 @@ export const Container: React.FC = () => {
           ))}
         </ul>
       </div>
+
+      {queryLLM.loading && <p>Loading...</p>}
+      <div className="streamed-results mt-4">{queryLLM.data}</div>
+
+      <Results
+        data={queryNodes.data}
+        loading={queryNodes.loading}
+        error={queryNodes.error}
+      />
     </div>
   );
 };

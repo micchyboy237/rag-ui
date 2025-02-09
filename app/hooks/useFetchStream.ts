@@ -1,128 +1,99 @@
-import { useEffect, useRef, useState } from "react";
+import { useState, useRef } from "react";
 
-const StreamStatus = {
-  pending: "pending",
-  loading: "loading",
-  done: "done",
-  stopped: "stopped",
-  error: "error",
+type RequestData = { [key: string]: any };
+
+type UseFetchStream = {
+  run: (requestData: RequestData) => void;
+  cancel: () => void;
+  data: string;
+  rawData: string[];
+  loading: boolean;
+  done: boolean;
+  error: Error | null;
 };
 
-export const useFetchStream = () => {
-  const [data, setData] = useState([]);
+export const useFetchStream = (url: string): UseFetchStream => {
+  const [responseChunks, setResponseChunks] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [status, setStatus] = useState(StreamStatus.pending);
-  let controller = useRef(null);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
+  const [streamingActive, setStreamingActive] = useState(true);
 
-  const fetchEventStream = (url, body) => {
+  const run = async (requestData: RequestData) => {
     setLoading(true);
+    setDone(false);
     setError(null);
-    setStatus(StreamStatus.loading);
+    setResponseChunks([]);
+    setStreamingActive(true);
+    controllerRef.current = new AbortController();
+    const { signal } = controllerRef.current;
 
-    controller.current = new AbortController();
-    const signal = controller.current.signal;
-
-    fetch(url, {
-      method: "POST",
-      signal: signal,
-      headers: {
-        "Content-Type": "application/json", // Set the content type header
-      },
-      body: JSON.stringify(body),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const reader = response.body.getReader();
-
-        const streamReader = () => {
-          reader
-            .read()
-            .then(({ done, value }) => {
-              if (done) {
-                setStatus(StreamStatus.done);
-                setLoading(false);
-                return;
-              }
-              let text = new TextDecoder().decode(value);
-              let messages = [];
-
-              if (text.startsWith("data:")) {
-                // Replace all "newline" with "\n"
-                text = text.replace(/newline/g, "\n");
-                // Get all messages after "data:"
-                messages = text.split("data:");
-                // Remove first element
-                messages = messages.slice(1);
-                // Add all messages to the data array
-                messages.forEach((message) => {
-                  setData((prevData) => [...prevData, message]);
-                });
-                streamReader();
-              } else if (text.startsWith("stop")) {
-                console.log("Stopping stream...");
-                setStatus(StreamStatus.done);
-                setLoading(false);
-                return;
-              }
-
-              //   setData((prevData) => [...prevData, text || '\n']);
-              //   streamReader();
-            })
-            .catch((error) => {
-              console.error("Error reading response body:", error);
-              setLoading(false);
-              setStatus(StreamStatus.error);
-              setError(new Error("Stream ended unexpectedly."));
-            });
-        };
-
-        streamReader();
-      })
-      .catch((error) => {
-        console.error("Fetch error:", error);
-        setLoading(false);
-        setStatus(StreamStatus.error);
-        setError(new Error("Failed to fetch data from the server."));
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Transfer-Encoding": "chunked",
+        },
+        body: JSON.stringify(requestData),
+        signal,
       });
-  };
 
-  const stopEventStream = () => {
-    if (controller.current) {
-      controller.current.abort();
-      setStatus(StreamStatus.stopped);
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("ReadableStream not supported");
+
+      while (streamingActive) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          console.log("Stream complete");
+          break;
+        }
+
+        const prefix = "data: ";
+        let chunk = new TextDecoder().decode(value);
+        chunk = chunk.replace(/newline/g, "\n");
+
+        const subChunks = chunk.split(prefix);
+
+        for (let subChunk of subChunks) {
+          // Remove exactly 2 trailing newlines, but keep 1 if only 1 exists
+          subChunk = subChunk.replace(/\n{2}$/, ""); // Remove 2 newlines if exactly 2 exist
+          subChunk = subChunk.replace(/\n{3,}$/, "\n"); // If more than 2, leave only 1 newline
+
+          if (subChunk) {
+            setResponseChunks((prevChunks) => [...prevChunks, subChunk]);
+          }
+        }
+      }
+    } catch (err) {
+      if (err.name === "AbortError") {
+        console.log("Request aborted");
+      } else {
+        setError(err as Error);
+        console.error("Error fetching data:", err);
+      }
+    } finally {
       setLoading(false);
+      setDone(true);
     }
   };
 
-  const runEventStream = (url, body) => {
-    clearData();
-    fetchEventStream(url, body);
+  const cancel = () => {
+    console.log("Cancelling stream...");
+    setStreamingActive(false);
+    controllerRef.current?.abort();
+    setResponseChunks([]);
   };
-
-  const clearData = () => {
-    stopEventStream();
-    setData([]);
-    setStatus(StreamStatus.pending);
-    setError(null);
-  };
-
-  useEffect(() => {
-    return () => {
-      stopEventStream();
-    };
-  }, []);
 
   return {
+    run,
+    cancel,
+    data: responseChunks.join(""),
+    rawData: responseChunks,
     loading,
-    data: data.join(""),
-    rawData: data,
+    done,
     error,
-    status,
-    run: runEventStream,
-    stop: stopEventStream,
-    clear: clearData,
   };
 };
