@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { toSnakeCase } from "~/utils/transformers";
 import { useFetchStream } from "./useFetchStream";
 import { DEFAULT_OPTIONS, DEFAULT_URL } from "./config";
@@ -37,6 +37,12 @@ export const useQueryLLM = (url: string = DEFAULT_URL): UseQueryLLM => {
     console.log("streamId:", streamIdRef.current);
     cancelStream(streamIdRef.current);
   };
+
+  useEffect(() => {
+    if (streamState.done && streamIdRef.current) {
+      cancelStream(streamIdRef.current);
+    }
+  }, [streamState.done]);
 
   return { run, cancel, ...streamState };
 };

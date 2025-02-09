@@ -36,6 +36,7 @@ export const useFetchStream = (url: string): UseFetchStream => {
     };
 
     eventSource.onerror = () => {
+      console.error("Error on eventSource");
       eventSource.close();
       setLoading(false);
       setDone(true);
