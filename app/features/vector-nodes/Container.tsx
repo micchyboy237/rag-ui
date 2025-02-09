@@ -88,7 +88,7 @@ export const Container: React.FC = () => {
                 }
                 className="cursor-pointer hover:underline"
               >
-                {query} {filters && `(${JSON.stringify(filters)})`}
+                {query} - {filters && `(${filters.mode})`}
               </span>
               <button
                 onClick={() => removeQuery(query, filters)}
