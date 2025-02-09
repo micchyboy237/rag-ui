@@ -1,16 +1,17 @@
-import { useState, useRef } from "react";
-import { fetchStreamQueue } from "./fetchStreamQueue";
+import { useState } from "react";
+import { fetchStreamQueue, FetchStreamQueueType } from "./fetchStreamQueue";
 
 type RequestData = { [key: string]: any };
 
 type UseFetchStream = {
-  run: (requestData: RequestData) => void;
-  cancel: () => void;
+  run: (requestData: RequestData) => string;
+  cancel: (id?: string) => void;
   data: string;
   rawData: string[];
   loading: boolean;
   done: boolean;
   error: Error | null;
+  queue: FetchStreamQueueType;
 };
 
 export const useFetchStream = (url: string): UseFetchStream => {
@@ -18,17 +19,18 @@ export const useFetchStream = (url: string): UseFetchStream => {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const controllerRef = useRef<AbortController | null>(null);
-  const [streamingActive, setStreamingActive] = useState(true);
 
-  const processRequest = async (requestData: RequestData) => {
+  const processRequest = async ({
+    requestData,
+    controller,
+  }: {
+    requestData: RequestData;
+    controller: AbortController;
+  }) => {
     setLoading(true);
     setDone(false);
     setError(null);
     setResponseChunks([]);
-    setStreamingActive(true);
-    controllerRef.current = new AbortController();
-    const { signal } = controllerRef.current;
 
     try {
       const response = await fetch(url, {
@@ -38,13 +40,13 @@ export const useFetchStream = (url: string): UseFetchStream => {
           "Transfer-Encoding": "chunked",
         },
         body: JSON.stringify(requestData),
-        signal,
+        signal: controller.signal,
       });
 
       const reader = response.body?.getReader();
       if (!reader) throw new Error("ReadableStream not supported");
 
-      while (streamingActive) {
+      while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -70,15 +72,20 @@ export const useFetchStream = (url: string): UseFetchStream => {
     }
   };
 
-  const run = (requestData: RequestData) => {
-    fetchStreamQueue.add(requestData, processRequest);
+  const run = (requestData: RequestData): string => {
+    return fetchStreamQueue.add(requestData, processRequest);
   };
 
-  const cancel = () => {
-    setStreamingActive(false);
-    controllerRef.current?.abort();
-    fetchStreamQueue.clear();
+  const cancel = (id?: string) => {
+    if (id) {
+      fetchStreamQueue.cancelById(id);
+    } else {
+      // fetchStreamQueue.cancelCurrent()
+      fetchStreamQueue.cancelAll();
+    }
   };
+
+  console.log("fetchStreamQueue:", fetchStreamQueue);
 
   return {
     run,
@@ -88,5 +95,6 @@ export const useFetchStream = (url: string): UseFetchStream => {
     loading,
     done,
     error,
+    queue: fetchStreamQueue,
   };
 };

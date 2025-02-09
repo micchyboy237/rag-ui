@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toSnakeCase } from "~/utils/transformers";
 import { useFetchStream } from "./useFetchStream";
 
@@ -44,12 +44,16 @@ type UseQueryLLM = {
 };
 
 export const useQueryLLM = (url: string = DEFAULT_URL): UseQueryLLM => {
-  const { run: runStream, ...streamState } = useFetchStream(url);
-  console.log("streamState:", streamState);
+  const {
+    run: runStream,
+    cancel: cancelStream,
+    ...streamState
+  } = useFetchStream(url);
+  const streamIdRef = useRef(null);
 
   const run = (query: string, options?: Partial<QueryOptions>) => {
     if (query) {
-      runStream(
+      streamIdRef.current = runStream(
         toSnakeCase({
           query,
           ...options,
@@ -58,5 +62,10 @@ export const useQueryLLM = (url: string = DEFAULT_URL): UseQueryLLM => {
     }
   };
 
-  return { run, ...streamState };
+  const cancel = () => {
+    console.log("streamId:", streamIdRef.current);
+    cancelStream(streamIdRef.current);
+  };
+
+  return { run, cancel, ...streamState };
 };

@@ -1,26 +1,46 @@
+import { v4 as uuidv4 } from "uuid";
+
 type RequestData = { [key: string]: any };
 
-class FetchStreamQueue {
-  private queue: RequestData[] = [];
-  private running: RequestData | null = null;
+interface QueueItem {
+  id: string;
+  requestData: RequestData;
+  controller: AbortController;
+}
+
+export class FetchStreamQueue {
+  private queue: QueueItem[] = [];
+  private running: QueueItem | null = null;
 
   private isEqual(a: RequestData, b: RequestData): boolean {
     return JSON.stringify(a) === JSON.stringify(b);
   }
 
-  add(requestData: RequestData, process: (req: RequestData) => Promise<void>) {
+  add(
+    requestData: RequestData,
+    process: (item: QueueItem) => Promise<void>
+  ): string {
+    // Prevent duplicates
     if (
-      (this.running && this.isEqual(this.running, requestData)) ||
-      this.queue.some((item) => this.isEqual(item, requestData))
+      (this.running && this.isEqual(this.running.requestData, requestData)) ||
+      this.queue.some((item) => this.isEqual(item.requestData, requestData))
     ) {
-      return;
+      return "";
     }
 
-    this.queue.push(requestData);
+    const newItem: QueueItem = {
+      id: uuidv4(), // Generate a unique ID
+      requestData,
+      controller: new AbortController(),
+    };
+
+    this.queue.push(newItem);
     this.processNext(process);
+
+    return newItem.id;
   }
 
-  private async processNext(process: (req: RequestData) => Promise<void>) {
+  private async processNext(process: (item: QueueItem) => Promise<void>) {
     if (this.running || this.queue.length === 0) return;
 
     this.running = this.queue.shift()!;
@@ -29,10 +49,36 @@ class FetchStreamQueue {
     this.processNext(process); // Process next item
   }
 
-  clear() {
+  cancelById(id: string) {
+    if (this.running?.id === id) {
+      this.running.controller.abort();
+      this.running = null;
+    } else {
+      this.queue = this.queue.filter((item) => item.id !== id);
+    }
+  }
+
+  cancelCurrent() {
+    if (this.running) {
+      this.running.controller.abort();
+      this.running = null;
+    }
+  }
+
+  cancelAll() {
+    if (this.running) {
+      this.running.controller.abort();
+      this.running = null;
+    }
+    this.queue.forEach((item) => item.controller.abort());
     this.queue = [];
-    this.running = null;
+  }
+
+  clear() {
+    this.cancelAll();
   }
 }
+
+export type FetchStreamQueueType = InstanceType<typeof FetchStreamQueue>;
 
 export const fetchStreamQueue = new FetchStreamQueue();

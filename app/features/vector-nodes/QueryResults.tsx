@@ -108,10 +108,25 @@ const LLMResult: React.FC<{
   }, [showLLMSearch, query, contexts, queryFilters, mode]);
 
   return (
-    <>
-      <button onClick={handleSearchLLM} className="search-button mt-2">
-        Search LLM
-      </button>
+    <div>
+      <div className="flex gap-2 mt-4">
+        <button
+          onClick={handleSearchLLM}
+          className="search-button bg-blue-500 text-white px-4 py-2 rounded-lg"
+        >
+          Search LLM
+        </button>
+        {!!queryLLM.loading && (
+          <button
+            type="button"
+            onClick={queryLLM.cancel}
+            className="reset-button bg-gray-500 text-white px-4 py-2 rounded-lg"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
+
       <div className="p-4 border rounded-lg shadow-md bg-white mt-2">
         <h3 className="text-lg font-semibold">Mode: {mode}</h3>
         {queryLLM.loading && <p className="text-blue-500">Loading...</p>}
@@ -124,6 +139,6 @@ const LLMResult: React.FC<{
           </pre>
         )}
       </div>
-    </>
+    </div>
   );
 };
