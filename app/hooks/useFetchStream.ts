@@ -20,72 +20,54 @@ export const useFetchStream = (url: string): UseFetchStream => {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const processRequest = async ({
-    requestData,
-    controller,
-  }: {
-    requestData: RequestData;
-    controller: AbortController;
-  }) => {
+  const processRequest = (item: { requestData: RequestData; id: string }) => {
     setLoading(true);
     setDone(false);
     setError(null);
     setResponseChunks([]);
 
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Transfer-Encoding": "chunked",
-        },
-        body: JSON.stringify(requestData),
-        signal: controller.signal,
-      });
+    const queryParams = new URLSearchParams(item.requestData).toString();
+    const eventSource = new EventSource(`${url}?${queryParams}`);
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("ReadableStream not supported");
+    fetchStreamQueue["running"].eventSource = eventSource;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+    eventSource.onmessage = (event: MessageEvent) => {
+      setResponseChunks((prevChunks) => [...prevChunks, event.data]);
+    };
 
-        const prefix = "data: ";
-        let chunk = new TextDecoder().decode(value);
-        chunk = chunk.replace(/newline/g, "\n");
-
-        const subChunks = chunk.split(prefix);
-        for (let subChunk of subChunks) {
-          subChunk = subChunk.replace(/\n{2}$/, "").replace(/\n{3,}$/, "\n");
-          if (subChunk) {
-            setResponseChunks((prevChunks) => [...prevChunks, subChunk]);
-          }
-        }
-      }
-    } catch (err) {
-      if (err.name !== "AbortError") {
-        setError(err as Error);
-      }
-    } finally {
+    eventSource.onerror = () => {
+      eventSource.close();
       setLoading(false);
       setDone(true);
-    }
+    };
   };
 
   const run = (requestData: RequestData): string => {
     return fetchStreamQueue.add(requestData, processRequest);
   };
 
-  const cancel = (id?: string) => {
+  const cancel = async (id?: string) => {
     if (id) {
       fetchStreamQueue.cancelById(id);
     } else {
-      // fetchStreamQueue.cancelCurrent()
       fetchStreamQueue.cancelAll();
     }
-  };
 
-  console.log("fetchStreamQueue:", fetchStreamQueue);
+    // Send stop request to backend
+    try {
+      const response = await fetch(
+        "http://0.0.0.0:8002/api/v1/rag/query/stop",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          // body: JSON.stringify({ id }),
+        }
+      );
+      console.info("Cancelled stream:", response);
+    } catch (error) {
+      console.error("Failed to send stop request:", error);
+    }
+  };
 
   return {
     run,

@@ -62,10 +62,11 @@ include_files = [
 
     # Client
     "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/hooks/useFetchStream.ts",
-    "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/hooks/useQueryLLM.ts",
-    "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/styles.css",
-    "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/Container.tsx",
-    "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/Results.tsx",
+    "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/hooks/fetchStreamQueue.ts",
+    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/hooks/useQueryLLM.ts",
+    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/QueryResults.tsx",
+    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/routes/sample.tsx",
+
 
     # Server
     # "/Users/jethroestrada/Desktop/External_Projects/Jet_Projects/jet_server/app.py",
@@ -91,9 +92,7 @@ DEFAULT_SYSTEM_MESSAGE = """
 """.strip()
 
 DEFAULT_QUERY_MESSAGE = """
-- Create new LLMResults component that will render multiple queryLLM data.
-- Move the logic to run calls to queryLLM.run based on modes from Container to LLMResults.
-- Each mode should render a sub child that contains its own call to queryLLM.run and own results.
+Make sure passed params are filtered with value.
 """.strip()
 
 DEFAULT_INSTRUCTIONS_MESSAGE = """

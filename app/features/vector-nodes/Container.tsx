@@ -8,7 +8,8 @@ import { Results } from "./Results";
 import { QueryResults } from "./QueryResults";
 import "./styles.css";
 
-const DEFAULT_SELECTED_MODES = ["fusion", "deeplake", "graph_nx"];
+// const DEFAULT_SELECTED_MODES = ["fusion", "deeplake", "graph_nx"];
+const DEFAULT_SELECTED_MODES = [];
 
 export const Container: React.FC = () => {
   const [query, setQuery] = useState("");
@@ -32,6 +33,13 @@ export const Container: React.FC = () => {
 
       setQuery(updatedQuery);
       setQueryFilters(formattedFilters);
+
+      setModes((prev) => {
+        if (!prev.includes(formattedFilters.mode)) {
+          return [...prev, formattedFilters.mode];
+        }
+        return prev;
+      });
     }
   };
 
@@ -101,7 +109,9 @@ export const Container: React.FC = () => {
       </div>
 
       {/* {!!query.trim() && ( */}
-      <QueryResults query={query} queryFilters={queryFilters} modes={modes} />
+      {!!modes.length && (
+        <QueryResults query={query} queryFilters={queryFilters} modes={modes} />
+      )}
       {/* )} */}
     </div>
   );
