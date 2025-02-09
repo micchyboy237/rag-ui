@@ -53,6 +53,8 @@ export const useFetchStream = (url: string): UseFetchStream => {
       fetchStreamQueue.cancelAll();
     }
 
+    setLoading(false);
+
     // Send stop request to backend
     try {
       const response = await fetch(

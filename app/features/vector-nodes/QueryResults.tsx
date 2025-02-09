@@ -94,18 +94,14 @@ const LLMResult: React.FC<{
   const queryLLM = useQueryLLM();
 
   const handleSearchLLM = () => {
-    setShowLLMSearch(true);
-  };
-
-  useEffect(() => {
-    if (showLLMSearch && query && contexts.length) {
+    if (query && contexts.length) {
       queryLLM.run(query, {
         contexts,
         ...queryFilters,
         mode,
       });
     }
-  }, [showLLMSearch, query, contexts, queryFilters, mode]);
+  };
 
   return (
     <div>
