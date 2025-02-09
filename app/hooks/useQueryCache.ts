@@ -7,7 +7,7 @@ interface CachedQuery {
   filters: Record<string, any>;
 }
 
-export const useQueryCache = (maxSize = 5) => {
+export const useQueryCache = (maxSize = 50) => {
   const isBrowser = typeof window !== "undefined"; // Ensure we are in the browser
   const [queryCache, setQueryCache] = useState<CachedQuery[]>(() => {
     if (!isBrowser) return []; // Prevent localStorage access on the server

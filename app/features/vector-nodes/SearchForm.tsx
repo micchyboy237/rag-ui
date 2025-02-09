@@ -6,10 +6,16 @@ import { DEFAULT_FILTER_OPTIONS } from "./config";
 import { FaFilter } from "react-icons/fa";
 
 type SearchFormProps = {
+  query: string;
+  filters?: Array<Filter>;
   onSearch: (query: string, queryFilters: Array<Filter>) => void;
 };
 
-export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
+export const SearchForm: React.FC<SearchFormProps> = ({
+  query: queryProp = "",
+  filters: queryFiltersProp = DEFAULT_FILTER_OPTIONS,
+  onSearch,
+}) => {
   const [query, setQuery] = useState("");
   const [queryFilters, setQueryFilters] = useState<Array<Filter>>(
     DEFAULT_FILTER_OPTIONS
@@ -21,9 +27,17 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
     onSearch(query, queryFilters);
   };
 
+  // useEffect(() => {
+  //   onSearch(query, queryFilters);
+  // }, [query, queryFilters]);
+
   useEffect(() => {
-    onSearch(query, queryFilters);
-  }, [query, queryFilters]);
+    setQuery(queryProp);
+  }, [queryProp]);
+
+  useEffect(() => {
+    setQueryFilters(queryFiltersProp);
+  }, [queryFiltersProp]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 relative">
@@ -32,6 +46,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
           placeholder="Search..."
           className="w-full"
           onChange={setQuery}
+          value={query}
         />
         <button
           type="button"
@@ -47,14 +62,12 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
         </div>
       )}
       <div className="flex gap-2 mt-4">
-        {!!query.trim() && (
-          <button
-            type="submit"
-            className="search-button bg-blue-500 text-white px-4 py-2 rounded-lg"
-          >
-            Search Nodes
-          </button>
-        )}
+        <button
+          type="submit"
+          className="search-button bg-blue-500 text-white px-4 py-2 rounded-lg"
+        >
+          Search Nodes
+        </button>
         <button
           type="button"
           onClick={() => setQueryFilters(DEFAULT_FILTER_OPTIONS)}

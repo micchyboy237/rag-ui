@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from "react";
+// Update app/features/vector-nodes/Container.tsx
+import React, { useEffect, useMemo, useState } from "react";
 import { useQueryNodes } from "~/hooks/useQueryNodes";
 import { useQueryCache } from "~/hooks/useQueryCache";
 import { Filter, QueryOptions } from "./types";
 import { SearchForm } from "./SearchForm";
 import { Results } from "./Results";
+import { QueryResults } from "./QueryResults";
 import "./styles.css";
-import { useQueryLLM } from "~/hooks/useQueryLLM";
+
+// const DEFAULT_SELECTED_MODES = ["fusion", "deeplake", "graph_nx"];
+const DEFAULT_SELECTED_MODES = ["fusion"];
 
 export const Container: React.FC = () => {
   const [query, setQuery] = useState("");
+  const [modes, setModes] = useState<string[]>(DEFAULT_SELECTED_MODES);
   const [queryFilters, setQueryFilters] = useState<Partial<QueryOptions>>(null);
   const { queryCache, storeQuery, removeQuery } = useQueryCache();
-  const queryNodes = useQueryNodes();
-  const queryLLM = useQueryLLM();
 
   const formatFilters = (
     queryFilters: Array<Filter>
@@ -27,19 +30,9 @@ export const Container: React.FC = () => {
     const updatedQuery = query.trim();
     if (updatedQuery) {
       const formattedFilters = formatFilters(filters);
+
       setQuery(updatedQuery);
       setQueryFilters(formattedFilters);
-    }
-  };
-
-  const handleSearchLLM = () => {
-    const updatedQuery = query.trim();
-    if (updatedQuery && queryNodes.data.length > 0) {
-      const contexts = queryNodes.data.map((item) => item.text);
-      queryLLM.run(updatedQuery, {
-        contexts,
-        ...queryFilters,
-      });
     }
   };
 
@@ -50,30 +43,33 @@ export const Container: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    let timeout;
+  // useEffect(() => {
+  //   let timeout;
+  //   if (query.trim()) {
+  //     timeout = setTimeout(() => {
+  //       queryNodes.run(query, queryFilters);
+  //     }, 400);
+  //   }
+  //   return () => {
+  //     clearTimeout(timeout);
+  //     queryNodes.cancel();
+  //   };
+  // }, [query, queryFilters]);
 
-    const updatedQuery = query.trim();
-    if (updatedQuery) {
-      timeout = setTimeout(() => {
-        queryNodes.run(query, queryFilters);
-      }, 400);
-    }
-
-    return () => {
-      clearTimeout(timeout);
-      queryNodes.cancel();
-    };
-  }, [query, queryFilters]);
+  // useEffect(() => {
+  //   const allModes = [
+  //     ...new Set(queryCache.map(({ filters }) => filters.mode)),
+  //   ];
+  //   setModes(allModes);
+  // }, [queryCache.length]);
 
   return (
     <div className="p-4">
-      <SearchForm onSearch={handleSearchNodes} />
-      {queryNodes.data.length > 0 && (
-        <button onClick={handleStoreQuery} className="add-button mt-2">
-          Store Query
-        </button>
-      )}
+      <SearchForm query={query} onSearch={handleSearchNodes} />
+
+      <button onClick={handleStoreQuery} className="add-button mt-2">
+        Store Query
+      </button>
 
       <div className="query-cache mt-4">
         <h3>Stored Queries</h3>
@@ -105,21 +101,9 @@ export const Container: React.FC = () => {
         </ul>
       </div>
 
-      {queryNodes.data.length > 0 && (
-        <>
-          <button onClick={handleSearchLLM} className="search-button mt-2">
-            Search LLM
-          </button>
-          {queryLLM.loading && <p>Loading...</p>}
-          <div className="streamed-results mt-4">{queryLLM.data}</div>
-        </>
-      )}
-
-      <Results
-        data={queryNodes.data}
-        loading={queryNodes.loading}
-        error={queryNodes.error}
-      />
+      {/* {!!query.trim() && ( */}
+      <QueryResults query={query} queryFilters={queryFilters} modes={modes} />
+      {/* )} */}
     </div>
   );
 };
