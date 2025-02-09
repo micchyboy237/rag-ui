@@ -8,8 +8,7 @@ import { Results } from "./Results";
 import { QueryResults } from "./QueryResults";
 import "./styles.css";
 
-// const DEFAULT_SELECTED_MODES = ["fusion", "deeplake", "graph_nx"];
-const DEFAULT_SELECTED_MODES = ["fusion"];
+const DEFAULT_SELECTED_MODES = ["fusion", "deeplake", "graph_nx"];
 
 export const Container: React.FC = () => {
   const [query, setQuery] = useState("");

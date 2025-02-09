@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { fetchStreamQueue } from "./fetchStreamQueue";
 
 type RequestData = { [key: string]: any };
 
@@ -20,7 +21,7 @@ export const useFetchStream = (url: string): UseFetchStream => {
   const controllerRef = useRef<AbortController | null>(null);
   const [streamingActive, setStreamingActive] = useState(true);
 
-  const run = async (requestData: RequestData) => {
+  const processRequest = async (requestData: RequestData) => {
     setLoading(true);
     setDone(false);
     setError(null);
@@ -45,34 +46,23 @@ export const useFetchStream = (url: string): UseFetchStream => {
 
       while (streamingActive) {
         const { done, value } = await reader.read();
-
-        if (done) {
-          console.log("Stream complete");
-          break;
-        }
+        if (done) break;
 
         const prefix = "data: ";
         let chunk = new TextDecoder().decode(value);
         chunk = chunk.replace(/newline/g, "\n");
 
         const subChunks = chunk.split(prefix);
-
         for (let subChunk of subChunks) {
-          // Remove exactly 2 trailing newlines, but keep 1 if only 1 exists
-          subChunk = subChunk.replace(/\n{2}$/, ""); // Remove 2 newlines if exactly 2 exist
-          subChunk = subChunk.replace(/\n{3,}$/, "\n"); // If more than 2, leave only 1 newline
-
+          subChunk = subChunk.replace(/\n{2}$/, "").replace(/\n{3,}$/, "\n");
           if (subChunk) {
             setResponseChunks((prevChunks) => [...prevChunks, subChunk]);
           }
         }
       }
     } catch (err) {
-      if (err.name === "AbortError") {
-        console.log("Request aborted");
-      } else {
+      if (err.name !== "AbortError") {
         setError(err as Error);
-        console.error("Error fetching data:", err);
       }
     } finally {
       setLoading(false);
@@ -80,11 +70,14 @@ export const useFetchStream = (url: string): UseFetchStream => {
     }
   };
 
+  const run = (requestData: RequestData) => {
+    fetchStreamQueue.add(requestData, processRequest);
+  };
+
   const cancel = () => {
-    console.log("Cancelling stream...");
     setStreamingActive(false);
     controllerRef.current?.abort();
-    setResponseChunks([]);
+    fetchStreamQueue.clear();
   };
 
   return {
