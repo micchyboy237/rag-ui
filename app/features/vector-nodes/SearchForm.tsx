@@ -51,7 +51,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
           type="submit"
           className="search-button bg-blue-500 text-white px-4 py-2 rounded-lg"
         >
-          Search
+          Search Nodes
         </button>
         <button
           type="button"

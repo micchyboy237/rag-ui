@@ -2,32 +2,50 @@ import { useState } from "react";
 import { toSnakeCase } from "~/utils/transformers";
 
 const DEFAULT_OPTIONS = {
-  withHierarchy: true,
-  topK: 20,
+  ragDir:
+    "/Users/jethroestrada/Desktop/External_Projects/Jet_Projects/JetScripts/data/jet-resume/data",
+  extensions: [".md", ".mdx", ".rst"],
+  system:
+    "You are a job applicant providing tailored responses during an interview.\n" +
+    "Always answer questions using the provided context as if it is your resume, " +
+    "and avoid referencing the context directly.\n" +
+    "Some rules to follow:\n" +
+    "1. Never directly mention the context or say 'According to my resume' or similar phrases.\n" +
+    "2. Provide responses as if you are the individual described in the context, focusing on professionalism and relevance.",
   chunkSize: 1024,
-  chunkOverlap: 100,
+  chunkOverlap: 40,
   subChunkSizes: [512, 256, 128],
-  mode: "hierarchy",
+  withHierarchy: true,
+  topK: null,
+  model: "llama3.2",
+  embedModel: "nomic-embed-text",
+  mode: "fusion",
+  storePath:
+    "/Users/jethroestrada/Desktop/External_Projects/Jet_Projects/jet_server/.cache/deeplake/store_1",
+  scoreThreshold: 0.0,
+  splitMode: [],
+  contexts: [],
 };
 
 type QueryOptions = typeof DEFAULT_OPTIONS;
-type QueryNodesHook = {
+
+type QueryHook = {
   run: (query: string, options?: Partial<QueryOptions>) => void;
   cancel: () => void;
-  data: any[];
+  data: string[];
   loading: boolean;
   error: Error | null;
 };
 
 type Options = Partial<QueryOptions>;
 
-export const useQueryNodes = (): QueryNodesHook => {
-  const [data, setData] = useState<any[]>([]);
+export const useQueryLLM = (): QueryHook => {
+  const [data, setData] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
 
-  const fetchNodes = async (query: string, options?: Options) => {
+  const fetchQuery = async (query: string, options?: Options) => {
     setLoading(true);
     setError(null);
     const abortController = new AbortController();
@@ -35,7 +53,7 @@ export const useQueryNodes = (): QueryNodesHook => {
     try {
       const finalOptions = { ...DEFAULT_OPTIONS, ...options };
       const snakeCasedOptions = toSnakeCase(finalOptions);
-      const response = await fetch("http://0.0.0.0:8002/api/v1/rag/nodes", {
+      const response = await fetch("http://0.0.0.0:8002/api/v1/rag/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -45,8 +63,8 @@ export const useQueryNodes = (): QueryNodesHook => {
         signal: abortController.signal,
       });
       if (!response.ok) throw new Error(`Failed: ${response.statusText}`);
-      const result = await response.json();
-      setData(result.data);
+      const result = await response.text();
+      setData(result.split("\n").filter(Boolean));
     } catch (err: any) {
       if (err.name !== "AbortError") setError(err);
     } finally {
@@ -55,8 +73,9 @@ export const useQueryNodes = (): QueryNodesHook => {
   };
 
   const run = (query: string, options?: Options) => {
-    if (query) fetchNodes(query, options);
+    if (query) fetchQuery(query, options);
   };
+
   const cancel = () => {
     if (controller) {
       controller.abort();

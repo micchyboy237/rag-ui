@@ -31,12 +31,12 @@ exclude_files = [
     # Custom
     "coverage/",
     ".*",
-    "*.test.tsx",
+    "*.test.*",
 ]
 include_files = [
     # "package.json",
     # "*.ts",
-    "package.json",
+    # "package.json",
 
     # App code
     # "app/**/*.css",
@@ -51,19 +51,15 @@ include_files = [
     # Hooks
     # "**/hooks/**/*.*",
     # Routes
-    "**/routes/**/*.*",
+    # "**/routes/**/*.*",
 
     # Features (Vector Nodes)
-    # "**/features/vector-nodes/**/*.css",
-    # "**/features/vector-nodes/**/*.ts",
-    # "**/features/vector-nodes/**/*.tsx",
+    "**/features/vector-nodes/**/*.css",
+    "**/features/vector-nodes/**/*.ts",
+    "**/features/vector-nodes/**/*.tsx",
 
     # Custom
-    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/components/search/SearchInput.tsx",
-    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/components/search/styles.css",
-    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/Filters.tsx",
-    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/styles.css",
-    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/SearchForm.tsx",
+    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Projects/jet_server/routes/rag.py",
 ]
 structure_include = [
     "*"
@@ -82,10 +78,11 @@ SHORTEN_FUNCTS = False
 INCLUDE_FILE_STRUCTURE = True
 
 DEFAULT_SYSTEM_MESSAGE = """
+Add 
 """.strip()
 
 DEFAULT_QUERY_MESSAGE = """
-/nodes and /query routes should render contents under navbar.
+Add "Query LLM" button beside "Search Nodes"
 """.strip()
 
 # Project specific

@@ -10,7 +10,7 @@ export const Container: React.FC = () => {
   const [query, setQuery] = useState("");
   const [queryFilters, setQueryFilters] = useState<Partial<QueryOptions>>(null);
   const { queryCache, storeQuery, removeQuery } = useQueryCache();
-  const { run, cancel, data, loading, error } = useQueryNodes();
+  const queryNodes = useQueryNodes();
 
   const formatFilters = (
     queryFilters: Array<Filter>
@@ -33,11 +33,11 @@ export const Container: React.FC = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      run(query, queryFilters);
+      queryNodes.run(query, queryFilters);
     }, 400);
     return () => {
       clearTimeout(timeout);
-      cancel();
+      queryNodes.cancel();
     };
   }, [query, queryFilters]);
 
@@ -47,7 +47,11 @@ export const Container: React.FC = () => {
       <button onClick={handleStoreQuery} className="add-button mt-2">
         Store Query
       </button>
-      <Results data={data} loading={loading} error={error} />
+      <Results
+        data={queryNodes.data}
+        loading={queryNodes.loading}
+        error={queryNodes.error}
+      />
       <div className="query-cache mt-4">
         <h3>Stored Queries</h3>
         <ul>

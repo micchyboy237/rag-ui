@@ -31,7 +31,7 @@ exclude_files = [
     # Custom
     "coverage/",
     ".*",
-    "*.test.tsx",
+    "*.test.*",
 ]
 include_files = [
     # "package.json",
@@ -51,7 +51,7 @@ include_files = [
     # Hooks
     # "**/hooks/**/*.*",
     # Routes
-    "**/routes/**/*.*",
+    # "**/routes/**/*.*",
 
     # Features (Vector Nodes)
     # "**/features/vector-nodes/**/*.css",
@@ -59,10 +59,8 @@ include_files = [
     # "**/features/vector-nodes/**/*.tsx",
 
     # Custom
-    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/Container.tsx",
-    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/styles.css",
-    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/Filters.tsx",
-    # "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/filters/ListFilter.tsx",
+    "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/hooks/useQueryNodes.ts",
+    "/Users/jethroestrada/Desktop/External_Projects/Jet_Projects/jet_server/routes/rag.py"
 ]
 structure_include = [
     # "*"
@@ -84,7 +82,7 @@ DEFAULT_SYSTEM_MESSAGE = """
 """.strip()
 
 DEFAULT_QUERY_MESSAGE = """
-Update home to show nav routes.
+Create a hook that calls "/query" endpoint. All params must be passed with default values the same as SearchRequest class.
 """.strip()
 
 DEFAULT_INSTRUCTIONS_MESSAGE = """
