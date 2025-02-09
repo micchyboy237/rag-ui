@@ -48,9 +48,15 @@ export const useQueryNodes = (): QueryNodesHook => {
       const result = await response.json();
       setData(result.data);
     } catch (err: any) {
-      if (err.name !== "AbortError") setError(err);
+      if (err.name !== "AbortError") {
+        setError(err);
+        console.error(err);
+      } else {
+        console.info(err);
+      }
     } finally {
       setLoading(false);
+      setController(null);
     }
   };
 

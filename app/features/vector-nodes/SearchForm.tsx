@@ -47,12 +47,14 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
         </div>
       )}
       <div className="flex gap-2 mt-4">
-        <button
-          type="submit"
-          className="search-button bg-blue-500 text-white px-4 py-2 rounded-lg"
-        >
-          Search Nodes
-        </button>
+        {!!query.trim() && (
+          <button
+            type="submit"
+            className="search-button bg-blue-500 text-white px-4 py-2 rounded-lg"
+          >
+            Search Nodes
+          </button>
+        )}
         <button
           type="button"
           onClick={() => setQueryFilters(DEFAULT_FILTER_OPTIONS)}

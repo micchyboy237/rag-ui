@@ -24,15 +24,19 @@ export const Container: React.FC = () => {
   };
 
   const handleSearchNodes = (query: string, filters: Array<Filter>) => {
-    const formattedFilters = formatFilters(filters);
-    setQuery(query);
-    setQueryFilters(formattedFilters);
+    const updatedQuery = query.trim();
+    if (updatedQuery) {
+      const formattedFilters = formatFilters(filters);
+      setQuery(updatedQuery);
+      setQueryFilters(formattedFilters);
+    }
   };
 
   const handleSearchLLM = () => {
-    if (queryNodes.data.length > 0) {
+    const updatedQuery = query.trim();
+    if (updatedQuery && queryNodes.data.length > 0) {
       const contexts = queryNodes.data.map((item) => item.text);
-      queryLLM.run(query, {
+      queryLLM.run(updatedQuery, {
         contexts,
         ...queryFilters,
       });
@@ -40,13 +44,22 @@ export const Container: React.FC = () => {
   };
 
   const handleStoreQuery = () => {
-    storeQuery(query, queryFilters || {});
+    const updatedQuery = query.trim();
+    if (updatedQuery) {
+      storeQuery(updatedQuery, queryFilters || {});
+    }
   };
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      queryNodes.run(query, queryFilters);
-    }, 400);
+    let timeout;
+
+    const updatedQuery = query.trim();
+    if (updatedQuery) {
+      timeout = setTimeout(() => {
+        queryNodes.run(query, queryFilters);
+      }, 400);
+    }
+
     return () => {
       clearTimeout(timeout);
       queryNodes.cancel();
@@ -57,14 +70,9 @@ export const Container: React.FC = () => {
     <div className="p-4">
       <SearchForm onSearch={handleSearchNodes} />
       {queryNodes.data.length > 0 && (
-        <>
-          <button onClick={handleStoreQuery} className="add-button mt-2">
-            Store Query
-          </button>
-          <button onClick={handleSearchLLM} className="search-button mt-2">
-            Search LLM
-          </button>
-        </>
+        <button onClick={handleStoreQuery} className="add-button mt-2">
+          Store Query
+        </button>
       )}
 
       <div className="query-cache mt-4">
@@ -97,8 +105,15 @@ export const Container: React.FC = () => {
         </ul>
       </div>
 
-      {queryLLM.loading && <p>Loading...</p>}
-      <div className="streamed-results mt-4">{queryLLM.data}</div>
+      {queryNodes.data.length > 0 && (
+        <>
+          <button onClick={handleSearchLLM} className="search-button mt-2">
+            Search LLM
+          </button>
+          {queryLLM.loading && <p>Loading...</p>}
+          <div className="streamed-results mt-4">{queryLLM.data}</div>
+        </>
+      )}
 
       <Results
         data={queryNodes.data}
