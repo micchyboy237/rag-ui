@@ -59,8 +59,9 @@ include_files = [
     # "**/features/vector-nodes/**/*.tsx",
 
     # Custom
-    "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/hooks/useQueryNodes.ts",
-    "/Users/jethroestrada/Desktop/External_Projects/Jet_Projects/jet_server/routes/rag.py"
+    "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/hooks/useFetchStream.ts",
+    "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/hooks/useQueryLLM.ts",
+    "/Users/jethroestrada/Desktop/External_Projects/Jet_Sample_Projects/sample-react-app/app/features/vector-nodes/Container.tsx",
 ]
 structure_include = [
     # "*"
@@ -82,7 +83,8 @@ DEFAULT_SYSTEM_MESSAGE = """
 """.strip()
 
 DEFAULT_QUERY_MESSAGE = """
-Create a hook that calls "/query" endpoint. All params must be passed with default values the same as SearchRequest class.
+- Analyze the logic from useFetchStream.ts then update useQueryLLM.ts to use event stream for search LLM feature.
+- Adjust Container.tsx to render each streamed chunk.
 """.strip()
 
 DEFAULT_INSTRUCTIONS_MESSAGE = """
