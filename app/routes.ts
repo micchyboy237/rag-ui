@@ -1,3 +1,9 @@
-import { type RouteConfig, index } from "@react-router/dev/routes";
+import { lazy } from "react";
+import { type RouteConfig } from "@react-router/dev/routes";
 
-export default [index("routes/home.tsx")] satisfies RouteConfig;
+export const navRoutes = [
+  { path: "/", file: "routes/nodes.tsx", label: "Nodes" },
+  { path: "/query", file: "routes/query.tsx", label: "Query" },
+];
+
+export default navRoutes satisfies RouteConfig;

@@ -1,0 +1,94 @@
+.form-container {
+  @apply p-4;
+
+  background-color: rgb(3 7 18 / var(--tw-bg-opacity, 1));
+}
+
+.input-field {
+  @apply border p-2 w-full rounded;
+}
+
+.button {
+  @apply bg-blue-500 text-white p-2 rounded;
+}
+
+.reset-button {
+  @apply bg-gray-500 text-white p-2 rounded;
+}
+
+/* Group: Boolean form */
+.boolean-button {
+  @apply flex items-center justify-center border p-2 rounded w-full text-sm font-medium transition-colors cursor-pointer;
+}
+
+.boolean-button.active {
+  @apply bg-green-500 text-white border-green-600;
+}
+
+.boolean-button.inactive {
+  @apply bg-gray-200 text-gray-700 border-gray-300;
+}
+
+.boolean-button .checkbox-icon {
+  @apply mr-2;
+}
+
+/* Group: Filters */
+.filters-container {
+  @apply hidden transition-all duration-300 ease-in-out;
+}
+
+.filters-visible {
+  @apply block;
+}
+
+.search-bar-wrapper {
+  @apply relative;
+}
+
+.filter-icon {
+  @apply absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer;
+}
+
+/* Group: Form Elements */
+.form-container {
+  @apply p-4 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 bg-white rounded-lg shadow-lg;
+}
+
+.input-field {
+  @apply border px-3 py-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+/* Group: Buttons */
+.add-button {
+  @apply bg-green-500 text-white px-3 py-1 rounded flex items-center gap-1 hover:bg-green-600 transition-all;
+}
+
+.remove-button {
+  @apply bg-red-500 text-white px-2 py-1 rounded flex items-center gap-1 hover:bg-red-600 transition-all;
+}
+
+.reset-button {
+  @apply col-span-full bg-gray-500 text-white p-2 rounded text-center hover:bg-gray-600 transition-all;
+}
+
+/* Group: List Styles */
+.list-items {
+  @apply flex flex-wrap gap-2;
+}
+
+.list-items li {
+  @apply flex px-2 py-1 rounded flex items-center gap-2;
+}
+
+.list-items span {
+  @apply flex-grow overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+/* Button styling for Search and Reset buttons */
+.search-button {
+  @apply bg-blue-500 text-white px-4 py-2 rounded-lg;
+}
+.reset-button {
+  @apply bg-gray-500 text-white px-4 py-2 rounded-lg;
+}
